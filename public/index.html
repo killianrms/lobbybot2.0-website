@@ -265,6 +265,16 @@
     const joinMsgInput = document.getElementById('joinMsgInput');
     const addMsgInput = document.getElementById('addMsgInput');
 
+    socket.on('manager:bots', (bots) => {
+        const div = document.getElementById('managed-bots');
+        if (bots && bots.length > 0) {
+            div.innerHTML = 'Manager: Connected (' + bots.length + ' bots: ' + bots.join(', ') + ')';
+            div.style.color = '#2ecc71';
+        } else {
+            div.innerHTML = 'Manager: Connected (0 bots)';
+            div.style.color = '#f1c40f';
+        }
+    });
     socket.on('config:current', (config) => {
         console.log('Config received:', config);
         if (config.admins) adminsInput.value = config.admins.join(', ');

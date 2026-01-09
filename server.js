@@ -20,6 +20,8 @@ let botState = {
     skin: 'Unknown'
 };
 
+let managedBots = [];
+
 let botConfig = {
     admins: [],
     joinMsg: '',
@@ -32,6 +34,7 @@ io.on('connection', (socket) => {
     // Send current state and config to new connection
     socket.emit('state:update', botState);
     socket.emit('config:current', botConfig);
+    socket.emit('manager:bots', managedBots);
 
     // --- Events from BOT ---
     socket.on('bot:login', (data) => {
@@ -88,3 +91,17 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+    // --- Events from MANAGER ---
+    socket.on('manager:login', (data) => {
+        console.log('Manager logged in:', data);
+        if (data.bots) {
+            managedBots = data.bots;
+            io.emit('manager:bots', managedBots);
+        }
+    });
+
+    socket.on('cmd:manager:add', (data) => {
+        // Forward add command from Web to Manager
+        io.emit('cmd:manager:add', data);
+    });
