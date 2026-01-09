@@ -82,16 +82,6 @@ io.on('connection', (socket) => {
         io.emit('config:current', botConfig);
     });
 
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-    });
-});
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
-
     // --- Events from MANAGER ---
     socket.on('manager:login', (data) => {
         console.log('Manager logged in:', data);
@@ -102,6 +92,21 @@ server.listen(PORT, () => {
     });
 
     socket.on('cmd:manager:add', (data) => {
+    socket.on('cmd:manager:action', (data) => {
+        // Forward any Multi-Bot Management action to Manager
+        io.emit('cmd:manager:action', data);
+    });
         // Forward add command from Web to Manager
         io.emit('cmd:manager:add', data);
     });
+
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});

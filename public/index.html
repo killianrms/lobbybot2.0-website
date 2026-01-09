@@ -1,389 +1,276 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LobbyBot 2.0 - Omega Dashboard</title>
-  <link rel="icon" href="z/icon.png" type="image/x-icon" />
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css">
-  <link rel="stylesheet" href="style.css"> 
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LobbyBot 2.0 Manager</title>
   <style>
-    @import url("https://fonts.googleapis.com/css?family=Karla:400,700&display=swap");
-
     :root {
-        --bgColor: #000000;
-        --accentColor: #FFF;
-        --font: "Karla", sans-serif;
-        --delay: .3s;
+      --bgColor: #0f2027;
+      --gradient1: #203a43;
+      --gradient2: #2c5364;
+      --accentColor: #00d2ff;
+      --font: 'Segoe UI', sans-serif;
     }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-        margin: 0;
-        padding: 0;
-        min-height: 100vh;
+        background: linear-gradient(to right, var(--bgColor), var(--gradient1), var(--gradient2));
+        color: white;
         font-family: var(--font);
-        background: radial-gradient(ellipse at bottom, #0d1d31 0%, #0c0d13 100%);
-        overflow: hidden;
-        color: var(--accentColor);
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Starfield Animation */
-    @keyframes animStar {
-        from { transform: translateY(0px); }
-        to { transform: translateY(-2000px); }
-    }
-
-    #stars1, #stars2, #stars3 {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: -1;
+        height: 100vh;
+        overflow: hidden;
     }
     
-    #stars1 { width: 1px; height: 1px; background: transparent; animation: animStar 50s linear infinite; box-shadow: 779px 1331px #fff, 324px 42px #fff, 303px 586px #fff; }
-    #stars2 { width: 2px; height: 2px; background: transparent; animation: animStar 100s linear infinite; box-shadow: 1448px 320px #fff, 1775px 1663px #fff, 332px 1364px #fff; }
-    #stars3 { width: 3px; height: 3px; background: transparent; animation: animStar 150s linear infinite; box-shadow: 387px 1878px #fff, 760px 1564px #fff, 1487px 999px #fff; }
-
-    /* Dashboard UI */
-    .container {
-        text-align: center;
-        z-index: 10;
-        background: rgba(0, 0, 0, 0.6);
-        padding: 40px;
-        border-radius: 20px;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        max-width: 600px;
-        width: 90%;
-    }
-
-    h1 {
-        font-size: 2.5rem;
-        margin-bottom: 10px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-    }
-
-    .status-indicator {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-right: 10px;
-    }
-    .status-online { background-color: #2ecc71; box-shadow: 0 0 10px #2ecc71; }
-    .status-offline { background-color: #e74c3c; box-shadow: 0 0 10px #e74c3c; }
-
-    .info-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        margin: 30px 0;
-        text-align: left;
-    }
-
-    .info-item {
-        background: rgba(255, 255, 255, 0.05);
-        padding: 15px;
-        border-radius: 10px;
-    }
-
-    .info-label { font-size: 0.8rem; opacity: 0.7; text-transform: uppercase; }
-    .info-value { font-size: 1.2rem; font-weight: bold; margin-top: 5px; }
-
-    /* Controls */
-    .controls {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
-    }
-
-    button {
-        background: transparent;
-        color: var(--accentColor);
-        border: 2px solid var(--accentColor);
-        padding: 12px 20px;
-        font-size: 1rem;
-        font-family: var(--font);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border-radius: 8px;
-        text-transform: uppercase;
-        font-weight: bold;
-    }
-
-    button:hover {
-        background: var(--accentColor);
-        color: var(--bgColor);
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
-    }
-
-    button:active { transform: translateY(0); }
-
-    .input-group {
-        display: flex;
-        gap: 10px;
-        grid-column: span 2;
-        margin-top: 10px;
-    }
-
-    input {
-        flex: 1;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 12px;
-        color: white;
-        border-radius: 8px;
-        font-family: var(--font);
-    }
-
-    input:focus { outline: none; border-color: white; }
-    .settings-panel {
-        margin-top: 30px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255,255,255,0.1);
-        text-align: left;
-    }
-    .settings-panel h2 { font-size: 1.5rem; margin-bottom: 15px; }
-    .settings-panel label { display: block; font-size: 0.8rem; margin-bottom: 5px; opacity: 0.7; }
-    .settings-panel textarea {
-        width: 100%;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        padding: 10px;
-        color: white;
-        border-radius: 8px;
-        font-family: var(--font);
-        resize: vertical;
-        margin-bottom: 10px;
-    }
-    .save-btn { width: 100%; background: #2ecc71; border-color: #2ecc71; margin-top: 10px; }
-    .save-btn:hover { background: #27ae60; }
-    /* MANAGED BOTS GRID */
-    .bot-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 15px;
-        margin-top: 15px;
-    }
-    .bot-card {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        padding: 15px;
+    /* SIDEBAR */
+    .sidebar {
+        width: 300px;
+        background: rgba(0, 0, 0, 0.3);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
         flex-direction: column;
-        gap: 5px;
-        transition: transform 0.2s;
     }
-    .bot-card:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.1); }
-    .bot-name { font-weight: bold; font-size: 1.1rem; color: var(--accentColor); }
-    .bot-stat { font-size: 0.9rem; opacity: 0.8; display: flex; justify-content: space-between; }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+    }
+    .search-box {
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        width: 100%;
+        color: white;
+        border-radius: 4px;
+        margin-top: 10px;
+    }
+    .bot-list {
+        flex: 1;
+        overflow-y: auto;
+    }
+    .bot-item {
+        padding: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background 0.2s;
+    }
+    .bot-item:hover { background: rgba(255, 255, 255, 0.05); }
+    .bot-item.active { background: rgba(0, 210, 255, 0.2); border-left: 4px solid var(--accentColor); }
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
     .online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
     .offline { background: #e74c3c; box-shadow: 0 0 5px #e74c3c; }
 
+    /* MAIN CONTENT */
+    .main-content {
+        flex: 1;
+        padding: 40px;
+        overflow-y: auto;
+        position: relative;
+    }
+    .empty-state { text-align: center; opacity: 0.5; margin-top: 100px; }
+
+    /* CONTROLS (visible when bot selected) */
+    .control-panel { display: none; max-width: 800px; margin: 0 auto; }
+    .control-panel.visible { display: block; }
+    
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 20px;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .info-card {
+        background: rgba(255,255,255,0.05);
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+    }
+    .info-label { opacity: 0.7; font-size: 0.8rem; text-transform: uppercase; }
+    .info-value { font-size: 1.5rem; font-weight: bold; margin-top: 5px; }
+
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    button, .input-group button {
+        background: transparent;
+        color: var(--accentColor);
+        border: 1px solid var(--accentColor);
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 4px;
+        text-transform: uppercase;
+        font-weight: bold;
+        width: 100%;
+        transition: all 0.2s;
+    }
+    button:hover { background: var(--accentColor); color: #0f2027; }
+    
+    .input-group { display: flex; gap: 10px; margin-top: 10px; }
+    input { flex: 1; padding: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px; }
+    
+    .section-title { margin: 30px 0 15px 0; font-size: 1.2rem; border-left: 3px solid var(--accentColor); padding-left: 10px; }
 
   </style>
 </head>
 <body>
 
-  <div id="stars1"></div>
-  <div id="stars2"></div>
-  <div id="stars3"></div>
-
-  <div class="container">
-    <h1>LobbyBot 2.0</h1>
-    <div id="managed-bots-panel">
-        <h3>Managed Bots</h3>
-        <div id="botGrid" class="bot-grid">
-            <div style="grid-column: 1/-1; text-align: center; opacity: 0.5;">Waiting for Manager...</div>
-        </div>
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>🤖 Bot Manager</h2>
+      <input type="text" class="search-box" placeholder="Search bots..." oninput="filterBots(this.value)">
     </div>
-    <div style="height: 20px;"></div>
-    <div id="connectionStatus">
-        <span class="status-indicator status-offline" id="statusDot"></span>
-        <span id="statusText">Offline</span>
+    <div id="botList" class="bot-list">
+      <!-- Bots injected here -->
     </div>
+  </div>
 
-    <div class="info-grid">
-        <div class="info-item">
-            <div class="info-label">Skin</div>
-            <div class="info-value" id="skinDisplay">Unknown</div>
-        </div>
-        <div class="info-item">
-            <div class="info-label">Party Size</div>
-            <div class="info-value" id="partyDisplay">0 / 16</div>
-        </div>
-        <div class="info-item">
-            <div class="info-label">Friends</div>
-            <div class="info-value" id="friendsDisplay">0</div>
-        </div>
-        <div class="info-item">
-            <div class="info-label">Uptime</div>
-            <div class="info-value" id="uptimeDisplay">00:00</div>
-        </div>
+  <!-- MAIN AREA -->
+  <div class="main-content">
+    <div id="emptyState" class="empty-state">
+      <h1>Select a Bot</h1>
+      <p>Choose a bot from the sidebar to manage commands.</p>
     </div>
 
-    <div class="controls">
-        <button onclick="sendCommand(\x27leave\x27)">Leave Party</button>
-        <button onclick="sendCommand(\x27privacy\x27, \x27public\x27)">Set Public</button>
-        <button onclick="sendCommand(\x27privacy\x27, \x27private\x27)">Set Private</button>
-        <button onclick="sendCommand(\x27privacy\x27, \x27friends\x27)">Set Friends Only</button>
+    <div id="controlPanel" class="control-panel">
+        <div class="panel-header">
+            <h1 id="selectedBotName">Bot Name</h1>
+            <span id="selectedBotStatus" class="status-dot"></span>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-label">Friends</div>
+                <div class="info-value" id="valFriends">-</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Status</div>
+                <div class="info-value" id="valStatus">-</div>
+            </div>
+             <div class="info-card">
+                <div class="info-label">Ping</div>
+                <div class="info-value" id="valPing">~ ms</div>
+            </div>
+        </div>
+
+        <h3 class="section-title">Party Management</h3>
+        <div class="action-grid">
+            <button onclick="sendAction('leave')">Leave Party</button>
+            <button onclick="sendAction('privacy', 'public')">Set Public</button>
+            <button onclick="sendAction('privacy', 'private')">Set Private</button>
+            <button onclick="sendAction('privacy', 'friends')">Friends Only</button>
+        </div>
+
+        <h3 class="section-title">Player Management</h3>
+        <div class="input-group">
+            <input type="text" id="kickInput" placeholder="Username to Kick">
+            <button onclick="sendInput('kick', 'kickInput')">KICK</button>
+        </div>
+        <div class="input-group">
+            <input type="text" id="promoteInput" placeholder="Username to Promote">
+            <button onclick="sendInput('promote', 'promoteInput')">PROMOTE</button>
+        </div>
         
+        <h3 class="section-title">Social</h3>
         <div class="input-group">
-            <input type="text" id="kickInput" placeholder="Username to Kick...">
-            <button onclick="sendKick()">Kick</button>
-        </div>
-        
-        <div class="input-group">
-            <input type="text" id="promoteInput" placeholder="Username to Promote...">
-            <button onclick="sendPromote()">Promote</button>
-        </div>
-
-        <div class="input-group">
-            <input type="text" id="statusInput" placeholder="Set Status Message...">
-            <button onclick="sendStatus()">Status</button>
-        </div>
-
-        <div class="input-group">
-            <input type="text" id="statusInput" placeholder="Set Status Message...">
-            <button onclick="sendStatus()">Status</button>
+            <input type="text" id="addInput" placeholder="Add Friend">
+            <button onclick="sendInput('add', 'addInput')">ADD</button>
         </div>
     </div>
   </div>
-    <- Installed hashicorp/null v3.2.4 ( signed by HashiCorp Settings Panel -->
-    <div class="settings-panel">
-        <h2>Settings</h2>
-        <div class="input-group">
-            <label>Admins (comma separated)</label>
-            <input type="text" id="adminsInput" placeholder="AerozOff, User2...">
-        </div>
-        <div class="input-group">
-            <label>Join Message</label>
-            <textarea id="joinMsgInput" rows="3"></textarea>
-        </div>
-        <div class="input-group">
-            <label>Add Message</label>
-            <textarea id="addMsgInput" rows="3"></textarea>
-        </div>
-        <button onclick="saveSettings()" class="save-btn">Save Configuration</button>
-    </div>
-
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
     
-    // UI Elements
-    const statusDot = document.getElementById("statusDot");
-    const statusText = document.getElementById("statusText");
-    const skinDisplay = document.getElementById("skinDisplay");
-    const partyDisplay = document.getElementById("partyDisplay");
-    const friendsDisplay = document.getElementById("friendsDisplay");
+    let allBots = [];
+    let selectedBot = null;
 
-    
-    // Settings Elements
-    const adminsInput = document.getElementById('adminsInput');
-    const joinMsgInput = document.getElementById('joinMsgInput');
-    const addMsgInput = document.getElementById('addMsgInput');
-
+    // --- SOCKET EVENTS ---
     socket.on('manager:bots', (bots) => {
-        const grid = document.getElementById('botGrid');
-        grid.innerHTML = ''; // Clear
-
-        if (!bots || bots.length === 0) {
-            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; opacity: 0.5;">No bots connected to Manager</div>';
-            return;
-        }
-
-        bots.forEach(bot => {
-            // Support both old format (string) and new format (object)
-            const name = typeof bot === 'string' ? bot : bot.name;
-            const friends = typeof bot === 'string' ? '?' : bot.friends;
-            const isOnline = typeof bot === 'string' ? true : bot.isOnline;
-            
-            const card = document.createElement('div');
-            card.className = 'bot-card';
-            card.innerHTML = `
-                <div class="bot-name">${name}</div>
-                <div class="bot-stat">
-                    <span>Status</span>
-                    <span><span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>${isOnline ? 'Online' : 'Offline'}</span>
-                </div>
-                <div class="bot-stat">
-                    <span>Friends</span>
-                    <span>${friends}</span>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
-    });
-    socket.on('config:current', (config) => {
-        console.log('Config received:', config);
-        if (config.admins) adminsInput.value = config.admins.join(', ');
-        if (config.joinMsg) joinMsgInput.value = config.joinMsg;
-        if (config.addMsg) addMsgInput.value = config.addMsg;
+        allBots = bots.map(b => typeof b === 'string' ? { name: b, friends: '?', isOnline: true } : b);
+        renderBotList();
+        updateSelectedView();
     });
 
-    function saveSettings() {
-        const newConfig = {
-            admins: adminsInput.value.split(',').map(s => s.trim()).filter(s => s),
-            joinMsg: joinMsgInput.value,
-            addMsg: addMsgInput.value
-        };
-        socket.emit('config:update', newConfig);
-        alert('Configuration saved!');
-    }
-
-    socket.on("connect", () => {
-        console.log("Connected to Dashboard Server");
-    });
-
-    socket.on("state:update", (data) => {
-        console.log("State Update:", data);
+    // --- RENDERING ---
+    function renderBotList(filter = '') {
+        const listContainer = document.getElementById('botList');
+        listContainer.innerHTML = '';
         
-        // Online/Offline
-        if (data.isOnline) {
-            statusDot.className = "status-indicator status-online";
-            statusText.innerText = "Online";
-        } else {
-            statusDot.className = "status-indicator status-offline";
-            statusText.innerText = "Offline";
-        }
-
-        // Stats
-        if (data.skin) skinDisplay.innerText = data.skin;
-        if (data.partySize !== undefined) partyDisplay.innerText = \`\${data.partySize} / \${data.partyMax}\`;
-        if (data.friends !== undefined) friendsDisplay.innerText = data.friends;
-    });
-
-    // Command Functions
-    function sendCommand(cmd, value = null) {
-        console.log("Sending command:", cmd, value);
-        socket.emit(\`cmd:\${cmd}\`, value);
+        const filtered = allBots.filter(b => b.name.toLowerCase().includes(filter.toLowerCase()));
+        
+        filtered.forEach(bot => {
+            const div = document.createElement('div');
+            div.className = `bot-item ${selectedBot === bot.name ? 'active' : ''}`;
+            div.innerHTML = `
+                <span>${bot.name}</span>
+                <span class="status-dot ${bot.isOnline ? 'online' : 'offline'}"></span>
+            `;
+            div.onclick = () => selectBot(bot.name);
+            listContainer.appendChild(div);
+        });
     }
 
-    function sendKick() {
-        const user = document.getElementById("kickInput").value;
-        if (user) {
-            sendCommand("kick", user);
-            document.getElementById("kickInput").value = "";
-        }
+    function selectBot(name) {
+        selectedBot = name;
+        renderBotList(); // Refresh active class
+        
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('controlPanel').classList.add('visible');
+        
+        updateSelectedView();
     }
 
-    function sendPromote() {
-        const user = document.getElementById("promoteInput").value;
-        if (user) {
-            sendCommand("promote", user);
-            document.getElementById("promoteInput").value = "";
+    function updateSelectedView() {
+        if (!selectedBot) return;
+        
+        const bot = allBots.find(b => b.name === selectedBot);
+        if (!bot) return; // Bot might have disconnected
+
+        document.getElementById('selectedBotName').innerText = bot.name;
+        
+        document.getElementById('valFriends').innerText = bot.friends;
+        document.getElementById('valStatus').innerText = bot.isOnline ? 'Online' : 'Offline';
+        
+        const statusDot = document.getElementById('selectedBotStatus');
+        statusDot.className = `status-dot ${bot.isOnline ? 'online' : 'offline'}`;
+    }
+    
+    function filterBots(val) {
+        renderBotList(val);
+    }
+
+    // --- ACTIONS ---
+    function sendAction(action, data = null) {
+        if (!selectedBot) return alert('Select a bot first!');
+        
+        socket.emit('cmd:manager:action', {
+            target: selectedBot,
+            action: action,
+            data: data
+        });
+        console.log(`Sent ${action} to ${selectedBot}`);
+    }
+
+    function sendInput(action, inputId) {
+        const val = document.getElementById(inputId).value;
+        if (val) {
+            sendAction(action, val);
+            document.getElementById(inputId).value = ''; // Clear input
         }
     }
   </script>
