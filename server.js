@@ -10,7 +10,7 @@ const io = new Server(server);
 // Serve static files from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Store bot state
+// Store bot state and config
 let botState = {
     isOnline: false,
     status: 'Offline',
@@ -20,17 +20,29 @@ let botState = {
     skin: 'Unknown'
 };
 
+let botConfig = {
+    admins: [],
+    joinMsg: '',
+    addMsg: ''
+};
+
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
-    // Send current state to new connection
+    // Send current state and config to new connection
     socket.emit('state:update', botState);
+    socket.emit('config:current', botConfig);
 
     // --- Events from BOT ---
     socket.on('bot:login', (data) => {
         console.log('Bot logged in:', data);
-        botState = { ...botState, ...data, isOnline: true };
+        const { config, ...state } = data;
+        
+        botState = { ...botState, ...state, isOnline: true };
+        if (config) botConfig = config;
+        
         io.emit('state:update', botState);
+        io.emit('config:current', botConfig);
     });
 
     socket.on('bot:update', (data) => {
@@ -57,6 +69,16 @@ io.on('connection', (socket) => {
     socket.on('cmd:block', (data) => io.emit('cmd:block', data));
     socket.on('cmd:status', (data) => io.emit('cmd:status', data));
     
+    // NEW: Handle Config Updates
+    socket.on('config:update', (newConfig) => {
+        console.log('Config updated by dashboard:', newConfig);
+        botConfig = { ...botConfig, ...newConfig };
+        // Broadcast to Bot so it saves it
+        io.emit('config:update', botConfig);
+        // Broadcast to other web clients
+        io.emit('config:current', botConfig);
+    });
+
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
     });

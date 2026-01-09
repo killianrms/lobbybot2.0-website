@@ -145,6 +145,28 @@
     }
 
     input:focus { outline: none; border-color: white; }
+    .settings-panel {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        text-align: left;
+    }
+    .settings-panel h2 { font-size: 1.5rem; margin-bottom: 15px; }
+    .settings-panel label { display: block; font-size: 0.8rem; margin-bottom: 5px; opacity: 0.7; }
+    .settings-panel textarea {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 10px;
+        color: white;
+        border-radius: 8px;
+        font-family: var(--font);
+        resize: vertical;
+        margin-bottom: 10px;
+    }
+    .save-btn { width: 100%; background: #2ecc71; border-color: #2ecc71; margin-top: 10px; }
+    .save-btn:hover { background: #27ae60; }
+
 
   </style>
 </head>
@@ -207,6 +229,24 @@
         </div>
     </div>
   </div>
+    <- Installed hashicorp/null v3.2.4 ( signed by HashiCorp Settings Panel -->
+    <div class="settings-panel">
+        <h2>Settings</h2>
+        <div class="input-group">
+            <label>Admins (comma separated)</label>
+            <input type="text" id="adminsInput" placeholder="AerozOff, User2...">
+        </div>
+        <div class="input-group">
+            <label>Join Message</label>
+            <textarea id="joinMsgInput" rows="3"></textarea>
+        </div>
+        <div class="input-group">
+            <label>Add Message</label>
+            <textarea id="addMsgInput" rows="3"></textarea>
+        </div>
+        <button onclick="saveSettings()" class="save-btn">Save Configuration</button>
+    </div>
+
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
@@ -218,6 +258,29 @@
     const skinDisplay = document.getElementById("skinDisplay");
     const partyDisplay = document.getElementById("partyDisplay");
     const friendsDisplay = document.getElementById("friendsDisplay");
+
+    
+    // Settings Elements
+    const adminsInput = document.getElementById('adminsInput');
+    const joinMsgInput = document.getElementById('joinMsgInput');
+    const addMsgInput = document.getElementById('addMsgInput');
+
+    socket.on('config:current', (config) => {
+        console.log('Config received:', config);
+        if (config.admins) adminsInput.value = config.admins.join(', ');
+        if (config.joinMsg) joinMsgInput.value = config.joinMsg;
+        if (config.addMsg) addMsgInput.value = config.addMsg;
+    });
+
+    function saveSettings() {
+        const newConfig = {
+            admins: adminsInput.value.split(',').map(s => s.trim()).filter(s => s),
+            joinMsg: joinMsgInput.value,
+            addMsg: addMsgInput.value
+        };
+        socket.emit('config:update', newConfig);
+        alert('Configuration saved!');
+    }
 
     socket.on("connect", () => {
         console.log("Connected to Dashboard Server");
