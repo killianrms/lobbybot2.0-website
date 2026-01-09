@@ -166,6 +166,29 @@
     }
     .save-btn { width: 100%; background: #2ecc71; border-color: #2ecc71; margin-top: 10px; }
     .save-btn:hover { background: #27ae60; }
+    /* MANAGED BOTS GRID */
+    .bot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+    .bot-card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        transition: transform 0.2s;
+    }
+    .bot-card:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.1); }
+    .bot-name { font-weight: bold; font-size: 1.1rem; color: var(--accentColor); }
+    .bot-stat { font-size: 0.9rem; opacity: 0.8; display: flex; justify-content: space-between; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .online { background: #2ecc71; box-shadow: 0 0 5px #2ecc71; }
+    .offline { background: #e74c3c; box-shadow: 0 0 5px #e74c3c; }
 
 
   </style>
@@ -178,6 +201,13 @@
 
   <div class="container">
     <h1>LobbyBot 2.0</h1>
+    <div id="managed-bots-panel">
+        <h3>Managed Bots</h3>
+        <div id="botGrid" class="bot-grid">
+            <div style="grid-column: 1/-1; text-align: center; opacity: 0.5;">Waiting for Manager...</div>
+        </div>
+    </div>
+    <div style="height: 20px;"></div>
     <div id="connectionStatus">
         <span class="status-indicator status-offline" id="statusDot"></span>
         <span id="statusText">Offline</span>
@@ -266,14 +296,35 @@
     const addMsgInput = document.getElementById('addMsgInput');
 
     socket.on('manager:bots', (bots) => {
-        const div = document.getElementById('managed-bots');
-        if (bots && bots.length > 0) {
-            div.innerHTML = 'Manager: Connected (' + bots.length + ' bots: ' + bots.join(', ') + ')';
-            div.style.color = '#2ecc71';
-        } else {
-            div.innerHTML = 'Manager: Connected (0 bots)';
-            div.style.color = '#f1c40f';
+        const grid = document.getElementById('botGrid');
+        grid.innerHTML = ''; // Clear
+
+        if (!bots || bots.length === 0) {
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; opacity: 0.5;">No bots connected to Manager</div>';
+            return;
         }
+
+        bots.forEach(bot => {
+            // Support both old format (string) and new format (object)
+            const name = typeof bot === 'string' ? bot : bot.name;
+            const friends = typeof bot === 'string' ? '?' : bot.friends;
+            const isOnline = typeof bot === 'string' ? true : bot.isOnline;
+            
+            const card = document.createElement('div');
+            card.className = 'bot-card';
+            card.innerHTML = `
+                <div class="bot-name">${name}</div>
+                <div class="bot-stat">
+                    <span>Status</span>
+                    <span><span class="status-dot ${isOnline ? 'online' : 'offline'}"></span>${isOnline ? 'Online' : 'Offline'}</span>
+                </div>
+                <div class="bot-stat">
+                    <span>Friends</span>
+                    <span>${friends}</span>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
     });
     socket.on('config:current', (config) => {
         console.log('Config received:', config);
