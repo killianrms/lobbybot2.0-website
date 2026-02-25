@@ -10,6 +10,11 @@ const io = new Server(server);
 // Serve static files from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Explicit route for the dashboard root
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Store bot state and config
 let botState = {
     isOnline: false,
@@ -92,12 +97,13 @@ io.on('connection', (socket) => {
     });
 
     socket.on('cmd:manager:add', (data) => {
+        // Forward add command from Web to Manager
+        io.emit('cmd:manager:add', data);
+    });
+
     socket.on('cmd:manager:action', (data) => {
         // Forward any Multi-Bot Management action to Manager
         io.emit('cmd:manager:action', data);
-    });
-        // Forward add command from Web to Manager
-        io.emit('cmd:manager:add', data);
     });
 
 
