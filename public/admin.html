@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LobbyBot 2.0 — Admin</title>
+  <style>
+    :root {
+      --bgColor: #0f2027;
+      --gradient1: #203a43;
+      --gradient2: #2c5364;
+      --accentColor: #00d2ff;
+      --dangerColor: #e74c3c;
+      --successColor: #2ecc71;
+      --font: 'Segoe UI', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        background: linear-gradient(135deg, var(--bgColor), var(--gradient1), var(--gradient2));
+        color: white;
+        font-family: var(--font);
+        min-height: 100vh;
+    }
+
+    /* LOGIN SCREEN */
+    #loginScreen {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
+    .login-card {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(0, 210, 255, 0.3);
+        border-radius: 12px;
+        padding: 40px;
+        width: 360px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+    .login-card h2 {
+        font-size: 1.6rem;
+        margin-bottom: 8px;
+    }
+    .login-card p {
+        opacity: 0.6;
+        margin-bottom: 28px;
+        font-size: 0.9rem;
+    }
+    .login-card input {
+        width: 100%;
+        padding: 12px 16px;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 6px;
+        color: white;
+        font-size: 1rem;
+        margin-bottom: 16px;
+        transition: border-color 0.2s;
+    }
+    .login-card input:focus { outline: none; border-color: var(--accentColor); }
+    .login-card input::placeholder { color: rgba(255,255,255,0.4); }
+    .login-card .btn-primary {
+        width: 100%;
+        padding: 12px;
+        background: var(--accentColor);
+        color: #0f2027;
+        border: none;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    .login-card .btn-primary:hover { opacity: 0.85; }
+    #loginError {
+        color: var(--dangerColor);
+        font-size: 0.85rem;
+        margin-top: 12px;
+        display: none;
+    }
+    .back-link {
+        display: block;
+        margin-top: 20px;
+        color: rgba(255,255,255,0.5);
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: color 0.2s;
+    }
+    .back-link:hover { color: white; }
+
+    /* ADMIN PANEL */
+    #adminPanel {
+        display: none;
+        flex-direction: row;
+        height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+        width: 280px;
+        background: rgba(0, 0, 0, 0.35);
+        border-right: 1px solid rgba(255,255,255,0.08);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+    }
+    .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .sidebar-header h3 { font-size: 0.85rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .sidebar-header p { font-size: 0.9rem; }
+    .bot-list { flex: 1; overflow-y: auto; }
+    .bot-item {
+        padding: 12px 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+    .bot-name { font-weight: 500; }
+    .bot-meta { display: flex; align-items: center; gap: 8px; opacity: 0.7; font-size: 0.8rem; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .online { background: var(--successColor); box-shadow: 0 0 5px var(--successColor); }
+    .offline { background: var(--dangerColor); box-shadow: 0 0 5px var(--dangerColor); }
+    .sidebar-footer {
+        padding: 16px 20px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        font-size: 0.8rem;
+        opacity: 0.5;
+        text-align: center;
+    }
+
+    /* MAIN CONTENT */
+    .main-content {
+        flex: 1;
+        padding: 40px;
+        overflow-y: auto;
+    }
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 36px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .page-header h1 { font-size: 1.8rem; }
+    .page-header a {
+        color: rgba(255,255,255,0.6);
+        text-decoration: none;
+        font-size: 0.9rem;
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 8px 16px;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    .page-header a:hover { color: white; border-color: white; }
+
+    /* CARDS */
+    .config-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 28px;
+    }
+    .config-card {
+        background: rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 10px;
+        padding: 24px;
+    }
+    .config-card.full-width {
+        grid-column: 1 / -1;
+    }
+    .card-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.6;
+        margin-bottom: 8px;
+    }
+    .card-desc {
+        font-size: 0.85rem;
+        opacity: 0.5;
+        margin-bottom: 14px;
+        line-height: 1.4;
+    }
+    .config-card input,
+    .config-card textarea {
+        width: 100%;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 6px;
+        color: white;
+        font-size: 0.9rem;
+        font-family: var(--font);
+        transition: border-color 0.2s;
+        resize: vertical;
+    }
+    .config-card input:focus,
+    .config-card textarea:focus { outline: none; border-color: var(--accentColor); }
+    .config-card input::placeholder,
+    .config-card textarea::placeholder { color: rgba(255,255,255,0.3); }
+    .config-card textarea { min-height: 80px; }
+
+    /* APPLY BUTTON */
+    .apply-section {
+        background: rgba(0, 210, 255, 0.08);
+        border: 1px solid rgba(0, 210, 255, 0.25);
+        border-radius: 10px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+    }
+    .apply-info { flex: 1; }
+    .apply-info h3 { font-size: 1rem; margin-bottom: 4px; }
+    .apply-info p { font-size: 0.85rem; opacity: 0.6; }
+    .btn-apply {
+        background: var(--accentColor);
+        color: #0f2027;
+        border: none;
+        padding: 12px 28px;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: opacity 0.2s, transform 0.1s;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .btn-apply:hover { opacity: 0.85; transform: translateY(-1px); }
+    .btn-apply:active { transform: translateY(0); }
+    .btn-apply:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* STATS BAR */
+    .stats-bar {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 28px;
+    }
+    .stat-chip {
+        background: rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 8px;
+        padding: 12px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .stat-label { font-size: 0.75rem; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; }
+    .stat-value { font-size: 1.4rem; font-weight: bold; margin-top: 2px; color: var(--accentColor); }
+
+    /* TOAST */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+    }
+    .toast {
+        background: rgba(15, 32, 39, 0.95);
+        border: 1px solid var(--accentColor);
+        padding: 12px 18px;
+        border-radius: 6px;
+        color: white;
+        min-width: 240px;
+        font-size: 0.9rem;
+        animation: toastIn 0.3s ease;
+        pointer-events: all;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .toast.success { border-color: var(--successColor); }
+    .toast.error { border-color: var(--dangerColor); }
+    @keyframes toastIn {
+        from { transform: translateX(110%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes toastOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(110%); opacity: 0; }
+    }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+    @media (max-width: 700px) {
+        .config-grid { grid-template-columns: 1fr; }
+        .apply-section { flex-direction: column; align-items: flex-start; }
+        .sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <h2>🔒 Admin Panel</h2>
+      <p>Entrez le mot de passe pour accéder au panneau d'administration.</p>
+      <input
+        type="email"
+        id="emailInput"
+        placeholder="Email"
+        onkeydown="if(event.key==='Enter') document.getElementById('passwordInput').focus()"
+        autofocus
+      />
+      <input
+        type="password"
+        id="passwordInput"
+        placeholder="Mot de passe"
+        onkeydown="if(event.key==='Enter') tryLogin()"
+      />
+      <button class="btn-primary" onclick="tryLogin()">Connexion</button>
+      <p id="loginError">Mot de passe incorrect</p>
+      <a href="/" class="back-link">← Retour au dashboard</a>
+    </div>
+  </div>
+
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel">
+    <!-- SIDEBAR: bot list -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h3>Bots connectés</h3>
+        <p id="botCountLabel">0 bot(s)</p>
+      </div>
+      <div id="botList" class="bot-list">
+        <div style="padding:20px;text-align:center;opacity:0.4;font-size:0.85rem;">En attente...</div>
+      </div>
+      <div class="sidebar-footer">LobbyBot 2.0 — Admin</div>
+    </div>
+
+    <!-- MAIN: config -->
+    <div class="main-content">
+      <div class="page-header">
+        <h1>⚙️ Configuration Globale</h1>
+        <a href="/">← Dashboard</a>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-bar">
+        <div class="stat-chip">
+          <span class="stat-label">Bots en ligne</span>
+          <span class="stat-value" id="statOnline">0</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Total bots</span>
+          <span class="stat-value" id="statTotal">0</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Total amis</span>
+          <span class="stat-value" id="statFriends">0</span>
+        </div>
+      </div>
+
+      <!-- Config cards -->
+      <div class="config-grid">
+        <div class="config-card">
+          <div class="card-title">🎮 Status in-game</div>
+          <div class="card-desc">Texte affiché dans le profil Fortnite de chaque bot (ex: code créateur).</div>
+          <input
+            type="text"
+            id="cfgStatus"
+            placeholder="Utilisez le code créateur : aeroz"
+            maxlength="128"
+          />
+        </div>
+
+        <div class="config-card">
+          <div class="card-title">👥 Message de lobby</div>
+          <div class="card-desc">Message envoyé dans le chat de la party quand un joueur rejoint.</div>
+          <textarea
+            id="cfgJoinMsg"
+            placeholder="Bienvenue dans le lobby ! Utilisez !help pour les commandes."
+          ></textarea>
+        </div>
+
+        <div class="config-card full-width">
+          <div class="card-title">➕ Message d'ajout</div>
+          <div class="card-desc">Message envoyé en DM quand le bot accepte une demande d'ami.</div>
+          <textarea
+            id="cfgAddMsg"
+            placeholder="Merci de m'avoir ajouté ! Rejoins ma party pour utiliser les commandes."
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Apply button -->
+      <div class="apply-section">
+        <div class="apply-info">
+          <h3>Appliquer à tous les bots</h3>
+          <p>Les changements seront appliqués immédiatement sur tous les bots connectés.</p>
+        </div>
+        <button class="btn-apply" id="applyBtn" onclick="applyConfig()">
+          ✓ Appliquer maintenant
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let authenticated = false;
+    let allBots = [];
+
+    // --- TOAST ---
+    function showToast(message, type = 'info', duration = 3500) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+        toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'toastOut 0.3s ease forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
+
+    // --- AUTH ---
+    async function tryLogin() {
+        const email = document.getElementById('emailInput').value.trim();
+        const pass = document.getElementById('passwordInput').value;
+        if (!email || !pass) return;
+
+        document.getElementById('loginError').style.display = 'none';
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass }),
+            });
+            const result = await res.json();
+            if (result.success) {
+                authenticated = true;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('adminPanel').style.display = 'flex';
+                showToast('Connecté en tant qu\'admin', 'success');
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+                document.getElementById('loginError').textContent = result.error;
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+            }
+        } catch (e) {
+            document.getElementById('loginError').style.display = 'block';
+            document.getElementById('loginError').textContent = 'Erreur de connexion';
+        }
+    }
+
+    // --- SOCKET EVENTS ---
+    socket.on('manager:bots', (bots) => {
+        allBots = bots.map(b => typeof b === 'string' ? { name: b, friends: 0, isOnline: true } : b);
+        renderBotList();
+        updateStats();
+    });
+
+    socket.on('globalConfig:current', (config) => {
+        if (config.status !== undefined) document.getElementById('cfgStatus').value = config.status;
+        if (config.joinMsg !== undefined) document.getElementById('cfgJoinMsg').value = config.joinMsg;
+        if (config.addMsg !== undefined) document.getElementById('cfgAddMsg').value = config.addMsg;
+    });
+
+    // --- RENDER BOT LIST ---
+    function renderBotList() {
+        const list = document.getElementById('botList');
+        const count = document.getElementById('botCountLabel');
+        count.textContent = `${allBots.length} bot(s)`;
+
+        if (allBots.length === 0) {
+            list.innerHTML = '<div style="padding:20px;text-align:center;opacity:0.4;font-size:0.85rem;">Aucun bot connecté</div>';
+            return;
+        }
+
+        list.innerHTML = '';
+        allBots
+            .slice()
+            .sort((a, b) => (b.isOnline ? 1 : 0) - (a.isOnline ? 1 : 0))
+            .forEach(bot => {
+                const div = document.createElement('div');
+                div.className = 'bot-item';
+                div.innerHTML = `
+                    <span class="bot-name">${bot.name}</span>
+                    <div class="bot-meta">
+                        <span>${bot.friends ?? 0} amis</span>
+                        <span class="status-dot ${bot.isOnline ? 'online' : 'offline'}"></span>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+    }
+
+    function updateStats() {
+        const online = allBots.filter(b => b.isOnline).length;
+        const totalFriends = allBots.reduce((sum, b) => sum + (b.friends || 0), 0);
+        document.getElementById('statOnline').textContent = online;
+        document.getElementById('statTotal').textContent = allBots.length;
+        document.getElementById('statFriends').textContent = totalFriends;
+    }
+
+    // --- APPLY CONFIG ---
+    function applyConfig() {
+        if (!authenticated) {
+            showToast('Non authentifié', 'error');
+            return;
+        }
+
+        const config = {
+            status: document.getElementById('cfgStatus').value.trim(),
+            joinMsg: document.getElementById('cfgJoinMsg').value.trim(),
+            addMsg: document.getElementById('cfgAddMsg').value.trim(),
+        };
+
+        const btn = document.getElementById('applyBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Application en cours...';
+
+        socket.emit('config:globalUpdate', config);
+
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = '✓ Appliquer maintenant';
+        }, 2000);
+
+        showToast('Configuration appliquée à tous les bots !', 'success');
+    }
+  </script>
+</body>
+</html>
