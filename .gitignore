@@ -1,1 +1,15 @@
 node_modules/
+
+# Fichiers sensibles
+.env
+.env.local
+
+# Base de données SQLite + backups (données privées)
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+npm-debug.log*
