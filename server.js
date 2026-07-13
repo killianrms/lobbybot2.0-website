@@ -18,7 +18,7 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(session({
+const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET || 'lobbybot-dashboard-secret-change-me',
     resave: false,
     saveUninitialized: false,
@@ -27,7 +27,12 @@ app.use(session({
         secure: process.env.NODE_ENV === 'production',
         maxAge: 24 * 60 * 60 * 1000,
     },
-}));
+});
+app.use(sessionMiddleware);
+// Partage la session Express avec Socket.io : une socket ouverte par un admin
+// déjà loggué (cookie de session valide) est reconnue comme admin sans redemander
+// le mot de passe.
+io.engine.use(sessionMiddleware);
 
 const loginLimiter = rateLimit({
     windowMs: 60 * 1000,
@@ -93,6 +98,10 @@ db.exec(`
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         last_used_at DATETIME
     );
+    CREATE TABLE IF NOT EXISTS dashboard_config (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+    );
 `);
 console.log('Tables ready');
 
@@ -113,6 +122,8 @@ const stmts = {
             account_id = excluded.account_id, secret_id = excluded.secret_id, is_active = 1
     `),
     deleteBot: db.prepare('DELETE FROM epic_accounts WHERE email = ?'),
+    getConfig: db.prepare('SELECT value FROM dashboard_config WHERE key = ?'),
+    setConfig: db.prepare('INSERT INTO dashboard_config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'),
 };
 
 const seedEmail = process.env.ADMIN_SEED_EMAIL;
@@ -149,7 +160,21 @@ setInterval(backup, 60 * 60 * 1000);
 console.log('Auto-backup every 60 min');
 
 let managedBots = [];
-let globalConfig = { status: 'Utilisez le code créateur : aeroz', joinMsg: '', addMsg: '' };
+const DEFAULT_GLOBAL_CONFIG = {
+    status: 'USE CODE CREATOR: aeroz',
+    joinMsg: 'Join my Discord: https://discord.gg/SarmtBh3Gu',
+    addMsg: 'Thanks for adding me! Use creator code "aeroz" and join our Discord: https://discord.gg/SarmtBh3Gu'
+};
+let globalConfig = DEFAULT_GLOBAL_CONFIG;
+try {
+    const row = stmts.getConfig.get('globalConfig');
+    if (row) globalConfig = { ...DEFAULT_GLOBAL_CONFIG, ...JSON.parse(row.value) };
+} catch (e) { console.error('Config load error:', e.message); }
+
+function saveGlobalConfig() {
+    try { stmts.setConfig.run('globalConfig', JSON.stringify(globalConfig)); }
+    catch (e) { console.error('Config save error:', e.message); }
+}
 
 const commandQueue = [];
 const MAX_QUEUE_AGE = 5 * 60 * 1000;
@@ -282,6 +307,10 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', botsConnected: man
 
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
+    // Statut admin hérité de la session HTTP (login via /api/auth/login)
+    if (socket.request.session && socket.request.session.authenticated) {
+        socket.isAdmin = true;
+    }
     socket.emit('manager:bots', managedBots);
     socket.emit('globalConfig:current', globalConfig);
     socket.emit('activity:log', activityLog.slice(0, MAX_LOG));
@@ -300,27 +329,53 @@ io.on('connection', (socket) => {
                 return callback({ success: false, error: 'Mot de passe incorrect.' });
             }
             stmts.resetAdmin.run(admin.id);
+            socket.isAdmin = true; // autorise ce socket à émettre des commandes vers les bots
             return callback({ success: true });
         } catch (e) { return callback({ success: false, error: 'Erreur serveur.' }); }
     });
 
     socket.on('manager:login', (data) => {
+        // Le manager (bot Discord) s'authentifie avec MANAGER_SECRET pour prouver son identité —
+        // sans ça, n'importe qui connu de l'URL du dashboard pourrait se faire passer pour lui
+        // et injecter une fausse liste de bots.
+        if (process.env.MANAGER_SECRET && socket.handshake.auth?.token !== process.env.MANAGER_SECRET) {
+            console.warn('[Security] Rejected manager:login (bad/missing MANAGER_SECRET) from', socket.id);
+            socket.disconnect(true);
+            return;
+        }
+        socket.isManager = true;
         console.log('Manager connected, bots:', data.botCount);
         if (data.bots) { managedBots = data.bots; io.emit('manager:bots', managedBots); }
         socket.emit('globalConfig:current', globalConfig);
         flushQueue();
     });
 
-    socket.on('cmd:manager:add', (data) => { io.emit('cmd:manager:add', data); });
+    // Les commandes vers les bots ne sont acceptées que d'un socket authentifié admin.
+    // Sans ce garde, n'importe quel visiteur du dashboard pouvait piloter la flotte
+    // (skin/kick/danse/config) en émettant ces événements à la main.
+    const rejectUnauthorized = (event) => {
+        console.warn(`[Security] Rejected ${event} from unauthenticated socket`, socket.id);
+    };
+
+    socket.on('cmd:manager:add', (data) => {
+        if (!socket.isAdmin) return rejectUnauthorized('cmd:manager:add');
+        io.emit('cmd:manager:add', data);
+    });
     socket.on('cmd:manager:action', (data) => {
+        if (!socket.isAdmin) return rejectUnauthorized('cmd:manager:action');
         io.emit('cmd:manager:action', data);
         socket.emit('action:sent', { target: data.target, action: data.action });
     });
-    socket.on('action:result', (data) => { io.emit('action:result', data); });
-    socket.on('admin:addBot', (botData) => { io.emit('cmd:manager:addBot', botData); });
-    socket.on('admin:addBotResult', (data) => { io.emit('admin:addBotResult', data); });
+    socket.on('action:result', (data) => { if (socket.isManager) io.emit('action:result', data); });
+    socket.on('admin:addBot', (botData) => {
+        if (!socket.isAdmin) return rejectUnauthorized('admin:addBot');
+        io.emit('cmd:manager:addBot', botData);
+    });
+    socket.on('admin:addBotResult', (data) => { if (socket.isManager) io.emit('admin:addBotResult', data); });
     socket.on('config:globalUpdate', (newConfig) => {
+        if (!socket.isAdmin) return rejectUnauthorized('config:globalUpdate');
         globalConfig = { ...globalConfig, ...newConfig };
+        saveGlobalConfig();
         io.emit('config:globalUpdate', globalConfig);
         io.emit('globalConfig:current', globalConfig);
     });
