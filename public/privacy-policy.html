@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Politique de Confidentialité — LobbyBot 2.0</title>
+  <style>
+    :root {
+      --bgColor: #0f2027;
+      --gradient1: #203a43;
+      --gradient2: #2c5364;
+      --accentColor: #00d2ff;
+      --font: 'Segoe UI', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(135deg, var(--bgColor), var(--gradient1), var(--gradient2));
+      color: #e8eef1;
+      font-family: var(--font);
+      min-height: 100vh;
+      line-height: 1.7;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+      background: rgba(0,0,0,0.28);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 48px;
+    }
+    h1 { font-size: 2rem; margin-bottom: 6px; }
+    .updated { opacity: 0.55; font-size: 0.85rem; margin-bottom: 32px; }
+    h2 {
+      font-size: 1.15rem;
+      margin: 30px 0 12px;
+      color: var(--accentColor);
+      border-left: 3px solid var(--accentColor);
+      padding-left: 12px;
+    }
+    p, li { opacity: 0.9; font-size: 0.95rem; margin-bottom: 10px; }
+    ul { padding-left: 24px; margin-bottom: 10px; }
+    a { color: var(--accentColor); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .back {
+      display: inline-block;
+      margin-top: 36px;
+      padding: 10px 18px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .back:hover { border-color: var(--accentColor); text-decoration: none; }
+    footer { margin-top: 40px; opacity: 0.5; font-size: 0.8rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Politique de Confidentialité</h1>
+    <p class="updated">LobbyBot 2.0 — Dernière mise à jour : 12 juillet 2026</p>
+
+    <p>La présente Politique de Confidentialité décrit comment LobbyBot 2.0 (le « Service »), exploité par Aeroz (l'« Éditeur »), collecte, utilise et protège vos données lorsque vous utilisez notre bot Discord et notre dashboard web.</p>
+
+    <h2>1. Données que nous collectons</h2>
+    <p>Nous collectons uniquement les données nécessaires au fonctionnement du Service :</p>
+    <ul>
+      <li><strong>Identifiant Discord</strong> : votre ID utilisateur Discord, pour associer vos préférences et actions.</li>
+      <li><strong>Données de compte Epic/Fortnite</strong> : lorsque vous vous connectez via <code>/login</code>, nous stockons les jetons d'authentification de l'appareil (device auth : deviceId, accountId, secret) permettant au bot d'agir en votre nom. Nous ne stockons jamais votre mot de passe Epic Games.</li>
+      <li><strong>Préférences</strong> : par exemple la langue choisie.</li>
+    </ul>
+
+    <h2>2. Comment nous utilisons vos données</h2>
+    <p>Vos données servent exclusivement à :</p>
+    <ul>
+      <li>Fournir les fonctionnalités du Service (ajout d'amis, gestion de party, cosmétiques) ;</li>
+      <li>Authentifier les bots auprès d'Epic Games ;</li>
+      <li>Mémoriser vos préférences.</li>
+    </ul>
+    <p>Nous ne vendons, ne louons et ne partageons jamais vos données avec des tiers à des fins commerciales.</p>
+
+    <h2>3. Stockage et sécurité</h2>
+    <p>Vos données sont stockées dans une base de données privée. Les accès au dashboard d'administration sont protégés par authentification (mot de passe haché avec bcrypt) et par des mécanismes de sécurité (sessions signées, limitation des tentatives de connexion). Malgré nos efforts, aucune méthode de transmission ou de stockage n'est totalement sécurisée.</p>
+
+    <h2>4. Conservation des données</h2>
+    <p>Nous conservons vos données tant que votre compte est actif. Vous pouvez supprimer l'ensemble de vos données à tout moment en utilisant la commande <code>/logout</code> sur le bot Discord, ce qui efface vos jetons d'authentification et informations associées.</p>
+
+    <h2>5. Vos droits</h2>
+    <p>Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données. La commande <code>/logout</code> vous permet d'exercer directement votre droit à l'effacement. Pour toute autre demande, contactez l'Éditeur.</p>
+
+    <h2>6. Services tiers</h2>
+    <p>Le Service interagit avec Discord et Epic Games. L'utilisation de ces plateformes est soumise à leurs propres politiques de confidentialité respectives. Nous vous invitons à les consulter.</p>
+
+    <h2>7. Données des mineurs</h2>
+    <p>Le Service n'est pas destiné aux personnes de moins de 13 ans (ou l'âge minimum légal dans votre pays). Nous ne collectons pas sciemment de données concernant des mineurs.</p>
+
+    <h2>8. Modifications</h2>
+    <p>Cette Politique peut être mise à jour à tout moment. Les modifications prennent effet dès leur publication sur cette page.</p>
+
+    <h2>9. Contact</h2>
+    <p>Pour toute question relative à cette Politique ou à vos données, contactez l'Éditeur via le serveur Discord officiel du Service.</p>
+
+    <a href="/terms-of-service" class="back">← Conditions d'Utilisation</a>
+    <footer>© 2026 LobbyBot 2.0 — Aeroz</footer>
+  </div>
+</body>
+</html>

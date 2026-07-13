@@ -35,6 +35,28 @@ const loginLimiter = rateLimit({
     message: { error: 'Trop de tentatives. Réessayez dans 1 minute.' },
 });
 
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+async function notifyDiscord(message) {
+    if (!DISCORD_WEBHOOK_URL) return;
+    try {
+        await fetch(DISCORD_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: '[LobbyBot Dashboard] ' + message }),
+        });
+    } catch (e) { console.error('Discord notify failed:', e.message); }
+}
+
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught exception:', err);
+    notifyDiscord('🔴 **Crash critique** (uncaughtException): ' + err.message).finally(() => process.exit(1));
+});
+process.on('unhandledRejection', (reason) => {
+    const msg = reason instanceof Error ? reason.message : String(reason);
+    console.error('Unhandled rejection:', reason);
+    notifyDiscord('🔴 **Crash critique** (unhandledRejection): ' + msg).finally(() => process.exit(1));
+});
+
 const DATA_DIR = path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'lobbybot.db');
 const BACKUP_DIR = path.join(DATA_DIR, 'backups');
@@ -105,18 +127,23 @@ if (seedEmail && seedPassword) {
     } catch (e) { console.error('Seed error:', e.message); }
 }
 
-function backup() {
+async function backup() {
+    let src;
     try {
         const now = new Date();
         const fn = 'lobbybot_' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '_' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + '.db';
         const dest = path.join(BACKUP_DIR, fn);
-        const src = new Database(DB_FILE, { readonly: true });
-        src.backup(dest);
+        src = new Database(DB_FILE, { readonly: true });
+        await src.backup(dest);
         src.close();
         console.log('Backup: ' + fn);
         const files = fs.readdirSync(BACKUP_DIR).sort().reverse().slice(30);
         for (const f of files) fs.unlinkSync(path.join(BACKUP_DIR, f));
-    } catch (e) { console.error('Backup error:', e.message); }
+    } catch (e) {
+        console.error('Backup error:', e.message);
+        if (src && src.open) { try { src.close(); } catch (_) {} }
+        notifyDiscord('⚠️ Backup DB échoué: ' + e.message);
+    }
 }
 setInterval(backup, 60 * 60 * 1000);
 console.log('Auto-backup every 60 min');
@@ -162,6 +189,8 @@ function logActivity(entry) {
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/terms-of-service', (req, res) => res.sendFile(path.join(__dirname, 'public', 'terms-of-service.html')));
+app.get('/privacy-policy', (req, res) => res.sendFile(path.join(__dirname, 'public', 'privacy-policy.html')));
 
 function isAuthenticated(req, res, next) {
     if (req.session && req.session.authenticated) return next();
