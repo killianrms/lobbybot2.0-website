@@ -214,6 +214,7 @@ function logActivity(entry) {
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/commands', (req, res) => res.sendFile(path.join(__dirname, 'public', 'commands.html')));
 app.get('/terms-of-service', (req, res) => res.sendFile(path.join(__dirname, 'public', 'terms-of-service.html')));
 app.get('/privacy-policy', (req, res) => res.sendFile(path.join(__dirname, 'public', 'privacy-policy.html')));
 

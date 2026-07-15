@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LobbyBot — Commands</title>
+  <style>
+    :root {
+      --bgColor: #0f2027;
+      --gradient1: #203a43;
+      --gradient2: #2c5364;
+      --accentColor: #00d2ff;
+      --premiumColor: #f1c40f;
+      --font: 'Segoe UI', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: linear-gradient(to right, var(--bgColor), var(--gradient1), var(--gradient2));
+      color: white;
+      font-family: var(--font);
+      min-height: 100vh;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 24px;
+      background: rgba(10, 22, 28, 0.92);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      flex-wrap: wrap;
+    }
+    .back-link {
+      color: rgba(255,255,255,0.6);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 6px 12px;
+      border-radius: 5px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .back-link:hover { color: var(--accentColor); border-color: rgba(0,210,255,0.4); }
+    .topbar h1 { font-size: 1.15rem; flex: 1; }
+    .search-box {
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: white;
+      border-radius: 5px;
+      font-family: var(--font);
+      font-size: 0.9rem;
+      width: 230px;
+    }
+    .search-box:focus { outline: none; border-color: var(--accentColor); }
+    .search-box::placeholder { color: rgba(255,255,255,0.4); }
+    .lang-switcher { display: flex; gap: 6px; }
+    .lang-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 5px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: white;
+      transition: all 0.15s;
+    }
+    .lang-btn:hover { background: rgba(255,255,255,0.12); }
+    .lang-btn.active { background: rgba(0,210,255,0.15); border-color: var(--accentColor); color: var(--accentColor); }
+
+    .container { max-width: 1000px; margin: 0 auto; padding: 30px 24px 60px; }
+
+    .intro {
+      background: rgba(0,210,255,0.07);
+      border: 1px solid rgba(0,210,255,0.25);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 0.92rem;
+      line-height: 1.55;
+      margin-bottom: 30px;
+    }
+    .intro code { background: rgba(255,255,255,0.1); padding: 1px 6px; border-radius: 4px; }
+
+    .section-title {
+      margin: 34px 0 6px 0;
+      font-size: 1.05rem;
+      border-left: 3px solid var(--accentColor);
+      padding-left: 10px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .section-title.premium { border-left-color: var(--premiumColor); color: var(--premiumColor); }
+    .section-sub { opacity: 0.55; font-size: 0.82rem; margin: 0 0 16px 13px; }
+
+    .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 760px) { .cmd-grid { grid-template-columns: 1fr; } .topbar h1 { flex-basis: 100%; order: -1; } }
+
+    .cmd-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9px;
+      padding: 14px 16px;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .cmd-card:hover { border-color: rgba(0,210,255,0.45); transform: translateY(-1px); }
+    .cmd-card.premium { border-color: rgba(241,196,15,0.3); background: rgba(241,196,15,0.05); }
+    .cmd-card.premium:hover { border-color: rgba(241,196,15,0.65); }
+    .cmd-name {
+      font-family: Consolas, monospace;
+      font-size: 0.95rem;
+      color: var(--accentColor);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .cmd-card.premium .cmd-name { color: var(--premiumColor); }
+    .badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #f1c40f, #e67e22);
+      color: #1a1a08;
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-family: var(--font);
+    }
+    .badge.admin { background: rgba(231,76,60,0.85); color: white; }
+    .cmd-desc { font-size: 0.85rem; opacity: 0.85; margin-top: 7px; line-height: 1.45; }
+    .cmd-desc code { background: rgba(255,255,255,0.1); padding: 0 5px; border-radius: 3px; font-size: 0.8rem; }
+    .cmd-aliases { margin-top: 9px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .alias-chip {
+      font-family: Consolas, monospace;
+      font-size: 0.72rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 2px 9px;
+      opacity: 0.75;
+    }
+
+    .premium-cta {
+      margin-top: 34px;
+      background: linear-gradient(135deg, rgba(241,196,15,0.12), rgba(230,126,34,0.10));
+      border: 1px solid rgba(241,196,15,0.4);
+      border-radius: 12px;
+      padding: 26px 28px;
+      text-align: center;
+    }
+    .premium-cta h2 { color: var(--premiumColor); font-size: 1.25rem; margin-bottom: 10px; }
+    .premium-cta p { font-size: 0.92rem; opacity: 0.9; max-width: 560px; margin: 0 auto 18px; line-height: 1.55; }
+    .premium-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #f1c40f, #e67e22);
+      color: #1a1a08;
+      font-weight: 800;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .premium-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(241,196,15,0.35); }
+
+    .hidden { display: none !important; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a href="/" class="back-link" data-i18n="back">← Dashboard</a>
+    <h1 data-i18n="title">📖 LobbyBot Commands</h1>
+    <input type="text" class="search-box" id="searchBox" data-i18n-placeholder="searchPlaceholder" placeholder="Search a command..." oninput="renderAll(this.value)">
+    <div class="lang-switcher">
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">🇬🇧</button>
+      <button class="lang-btn" data-lang="fr" onclick="setLang('fr')">🇫🇷</button>
+      <button class="lang-btn" data-lang="es" onclick="setLang('es')">🇪🇸</button>
+      <button class="lang-btn" data-lang="de" onclick="setLang('de')">🇩🇪</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="intro" data-i18n-html="intro"></div>
+
+    <h2 class="section-title" data-i18n="secCosmetics">👗 In-Game — Cosmetics</h2>
+    <p class="section-sub" data-i18n="secCosmeticsSub"></p>
+    <div class="cmd-grid" id="grid-cosmetics"></div>
+
+    <h2 class="section-title" data-i18n="secLobby">🎮 In-Game — Lobby</h2>
+    <p class="section-sub" data-i18n="secLobbySub"></p>
+    <div class="cmd-grid" id="grid-lobby"></div>
+
+    <h2 class="section-title" data-i18n="secDiscord">💬 Discord</h2>
+    <p class="section-sub" data-i18n="secDiscordSub"></p>
+    <div class="cmd-grid" id="grid-discord"></div>
+
+    <h2 class="section-title premium" data-i18n="secPremium">💎 Premium</h2>
+    <p class="section-sub" data-i18n="secPremiumSub"></p>
+    <div class="cmd-grid" id="grid-premium"></div>
+
+    <div class="premium-cta">
+      <h2 data-i18n="ctaTitle">💎 LobbyBot Premium</h2>
+      <p data-i18n="ctaText"></p>
+      <a class="premium-btn" href="https://discord.gg/SarmtBh3Gu" target="_blank" rel="noopener" data-i18n="ctaBtn">Get Premium on Discord</a>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════ UI TRANSLATIONS ═══════════
+    const i18n = {
+      en: {
+        back: '← Dashboard',
+        title: '📖 LobbyBot Commands',
+        searchPlaceholder: 'Search a command...',
+        intro: 'In-game commands are used <b>directly in Fortnite</b>: in the <b>lobby chat</b> (with a bot in your party) or by <b>private message</b> to a bot on Epic Games. Cosmetic names are <b>typo-tolerant</b> and understand styles: <code>!skin ghoul rose</code>, <code>!skin drift 4</code>. Discord commands are used on our Discord server.',
+        secCosmetics: '👗 In-Game — Cosmetics',
+        secCosmeticsSub: 'Type these in the Fortnite lobby chat or DM the bot.',
+        secLobby: '🎮 In-Game — Lobby',
+        secLobbySub: 'Party controls, ready state, screenshots tricks.',
+        secDiscord: '💬 Discord',
+        secDiscordSub: 'Slash commands on the LobbyBot Discord server.',
+        secPremium: '💎 Premium',
+        secPremiumSub: 'Your own personal bot fleet — exclusive commands.',
+        ctaTitle: '💎 LobbyBot Premium',
+        ctaText: 'Get your OWN personal bots: they join your party as a full squad, dance in sync, apply your saved loadouts in one command — and you support the project. Subscribe directly on Discord with /premium.',
+        ctaBtn: 'Get Premium on Discord',
+        adminBadge: 'admin',
+        premiumBadge: '💎 premium',
+      },
+      fr: {
+        back: '← Dashboard',
+        title: '📖 Commandes LobbyBot',
+        searchPlaceholder: 'Rechercher une commande...',
+        intro: 'Les commandes in-game s\'utilisent <b>directement dans Fortnite</b> : dans le <b>chat du lobby</b> (avec un bot dans ton groupe) ou en <b>message privé</b> à un bot sur Epic Games. Les noms de cosmétiques <b>tolèrent les fautes</b> et comprennent les styles : <code>!skin ghoul rose</code>, <code>!skin drift 4</code>. Les commandes Discord s\'utilisent sur notre serveur Discord.',
+        secCosmetics: '👗 In-Game — Cosmétiques',
+        secCosmeticsSub: 'À taper dans le chat du lobby Fortnite ou en MP au bot.',
+        secLobby: '🎮 In-Game — Lobby',
+        secLobbySub: 'Contrôles du groupe, ready, astuces screenshots.',
+        secDiscord: '💬 Discord',
+        secDiscordSub: 'Commandes slash sur le serveur Discord LobbyBot.',
+        secPremium: '💎 Premium',
+        secPremiumSub: 'Ta propre flotte de bots perso — commandes exclusives.',
+        ctaTitle: '💎 LobbyBot Premium',
+        ctaText: 'Obtiens TES propres bots perso : ils rejoignent ton groupe en squad complète, dansent en synchro, appliquent tes loadouts sauvegardés en une commande — et tu soutiens le projet. Abonne-toi directement sur Discord avec /premium.',
+        ctaBtn: 'Passer Premium sur Discord',
+        adminBadge: 'admin',
+        premiumBadge: '💎 premium',
+      },
+      es: {
+        back: '← Dashboard',
+        title: '📖 Comandos LobbyBot',
+        searchPlaceholder: 'Buscar un comando...',
+        intro: 'Los comandos in-game se usan <b>directamente en Fortnite</b>: en el <b>chat del lobby</b> (con un bot en tu grupo) o por <b>mensaje privado</b> a un bot en Epic Games. Los nombres de cosméticos <b>toleran errores</b> y entienden estilos: <code>!skin ghoul rosa</code>, <code>!skin drift 4</code>. Los comandos de Discord se usan en nuestro servidor.',
+        secCosmetics: '👗 In-Game — Cosméticos',
+        secCosmeticsSub: 'Escríbelos en el chat del lobby de Fortnite o por MP al bot.',
+        secLobby: '🎮 In-Game — Lobby',
+        secLobbySub: 'Controles del grupo, ready, trucos para capturas.',
+        secDiscord: '💬 Discord',
+        secDiscordSub: 'Comandos slash en el servidor de Discord de LobbyBot.',
+        secPremium: '💎 Premium',
+        secPremiumSub: 'Tu propia flota de bots personales — comandos exclusivos.',
+        ctaTitle: '💎 LobbyBot Premium',
+        ctaText: 'Consigue TUS propios bots personales: se unen a tu grupo como un squad completo, bailan en sincronía, aplican tus loadouts guardados en un comando — y apoyas el proyecto. Suscríbete en Discord con /premium.',
+        ctaBtn: 'Conseguir Premium en Discord',
+        adminBadge: 'admin',
+        premiumBadge: '💎 premium',
+      },
+      de: {
+        back: '← Dashboard',
+        title: '📖 LobbyBot Befehle',
+        searchPlaceholder: 'Befehl suchen...',
+        intro: 'In-Game-Befehle werden <b>direkt in Fortnite</b> verwendet: im <b>Lobby-Chat</b> (mit einem Bot in deiner Party) oder per <b>Privatnachricht</b> an einen Bot auf Epic Games. Cosmetic-Namen sind <b>tippfehlertolerant</b> und verstehen Stile: <code>!skin ghoul rosa</code>, <code>!skin drift 4</code>. Discord-Befehle nutzt du auf unserem Discord-Server.',
+        secCosmetics: '👗 In-Game — Kosmetik',
+        secCosmeticsSub: 'Im Fortnite-Lobby-Chat eingeben oder dem Bot per DM schicken.',
+        secLobby: '🎮 In-Game — Lobby',
+        secLobbySub: 'Party-Steuerung, Ready-Status, Screenshot-Tricks.',
+        secDiscord: '💬 Discord',
+        secDiscordSub: 'Slash-Befehle auf dem LobbyBot Discord-Server.',
+        secPremium: '💎 Premium',
+        secPremiumSub: 'Deine eigene persönliche Bot-Flotte — exklusive Befehle.',
+        ctaTitle: '💎 LobbyBot Premium',
+        ctaText: 'Hol dir DEINE eigenen Bots: Sie joinen deiner Party als komplettes Squad, tanzen synchron, wenden gespeicherte Loadouts mit einem Befehl an — und du unterstützt das Projekt. Abonniere direkt auf Discord mit /premium.',
+        ctaBtn: 'Premium auf Discord holen',
+        adminBadge: 'admin',
+        premiumBadge: '💎 premium',
+      }
+    };
+
+    // ═══════════ COMMANDS DATA ═══════════
+    // desc: {en, fr, es, de} — admin: true → red badge — premium: true → gold card
+    const COMMANDS = {
+      cosmetics: [
+        { name: '!skin <name>', aliases: ['!outfit'], desc: {
+          en: 'Changes the bot\'s skin. Typos OK, styles inline: <code>!skin ghoul rose</code>, <code>!skin purple skull</code>, <code>!skin drift 4</code>.',
+          fr: 'Change le skin du bot. Fautes OK, styles direct : <code>!skin ghoul rose</code>, <code>!skin skull violet</code>, <code>!skin drift 4</code>.',
+          es: 'Cambia el skin del bot. Errores OK, estilos directos: <code>!skin ghoul rosa</code>, <code>!skin skull morado</code>, <code>!skin drift 4</code>.',
+          de: 'Ändert den Skin des Bots. Tippfehler OK, Stile direkt: <code>!skin ghoul rosa</code>, <code>!skin skull lila</code>, <code>!skin drift 4</code>.' } },
+        { name: '!style <style>', aliases: ['!variant'], desc: {
+          en: 'Applies a style to the current skin: <code>!style pink</code>, <code>!style gold</code>, <code>!style stage 3</code>.',
+          fr: 'Applique un style au skin actuel : <code>!style rose</code>, <code>!style gold</code>, <code>!style stage 3</code>.',
+          es: 'Aplica un estilo al skin actual: <code>!style rosa</code>, <code>!style gold</code>, <code>!style stage 3</code>.',
+          de: 'Wendet einen Stil auf den aktuellen Skin an: <code>!style rosa</code>, <code>!style gold</code>, <code>!style stage 3</code>.' } },
+        { name: '!pinkghoul / !purpleskull', aliases: [], desc: {
+          en: 'Instant shortcuts for the two most requested OG skins.',
+          fr: 'Raccourcis instantanés pour les deux skins OG les plus demandés.',
+          es: 'Atajos instantáneos para los dos skins OG más pedidos.',
+          de: 'Sofort-Shortcuts für die zwei meistgefragten OG-Skins.' } },
+        { name: '!backpack <name|none>', aliases: ['!bag', '!sac'], desc: {
+          en: 'Sets the back bling — <code>none</code> removes it.',
+          fr: 'Change le sac à dos — <code>none</code> pour le retirer.',
+          es: 'Cambia la mochila — <code>none</code> para quitarla.',
+          de: 'Ändert den Rucksack — <code>none</code> zum Entfernen.' } },
+        { name: '!pickaxe <name>', aliases: ['!pioche'], desc: {
+          en: 'Sets the pickaxe.', fr: 'Change la pioche.', es: 'Cambia el pico.', de: 'Ändert die Spitzhacke.' } },
+        { name: '!glider <name>', aliases: ['!planeur'], desc: {
+          en: 'Sets the glider.', fr: 'Change le planeur.', es: 'Cambia el ala delta.', de: 'Ändert den Gleiter.' } },
+        { name: '!shoes <name|none>', aliases: ['!kicks'], desc: {
+          en: 'Sets the shoes.', fr: 'Change les chaussures.', es: 'Cambia los zapatos.', de: 'Ändert die Schuhe.' } },
+        { name: '!emote <name>', aliases: ['!dance', '!danse'], desc: {
+          en: 'Makes the bot dance. <code>!stopdanse</code> stops it.',
+          fr: 'Fait danser le bot. <code>!stopdanse</code> pour arrêter.',
+          es: 'Hace bailar al bot. <code>!stopdanse</code> para parar.',
+          de: 'Lässt den Bot tanzen. <code>!stopdanse</code> zum Stoppen.' } },
+        { name: '!copy [player]', aliases: ['!copie', '!stopcopy'], desc: {
+          en: 'Copies a player\'s FULL loadout — skin, styles <b>and dances, live</b>. No argument = copies you.',
+          fr: 'Copie TOUT le loadout d\'un joueur — skin, styles <b>et danses, en direct</b>. Sans argument = te copie toi.',
+          es: 'Copia TODO el loadout de un jugador — skin, estilos <b>y bailes, en directo</b>. Sin argumento = te copia.',
+          de: 'Kopiert das GANZE Loadout eines Spielers — Skin, Stile <b>und Tänze, live</b>. Ohne Argument = kopiert dich.' } },
+        { name: '!new [skins|emotes]', aliases: ['!stop'], desc: {
+          en: 'Showcase of the newest items from the latest update — often not even released yet! One every 6s, <code>!stop</code> to end.',
+          fr: 'Défilé des nouveautés de la dernière MAJ — souvent même pas encore sorties ! Une toutes les 6s, <code>!stop</code> pour arrêter.',
+          es: 'Desfile de las novedades de la última actualización — ¡a menudo sin salir aún! Una cada 6s, <code>!stop</code> para terminar.',
+          de: 'Schau der neuesten Items des letzten Updates — oft noch unveröffentlicht! Eins alle 6s, <code>!stop</code> zum Beenden.' } },
+        { name: '!random [skin|emote]', aliases: ['!rdm'], desc: {
+          en: 'Random cosmetic.', fr: 'Cosmétique aléatoire.', es: 'Cosmético aleatorio.', de: 'Zufälliges Cosmetic.' } },
+        { name: '!level <n>', aliases: ['!niveau'], desc: {
+          en: 'Sets the bot\'s displayed level.', fr: 'Change le niveau affiché du bot.', es: 'Cambia el nivel mostrado.', de: 'Ändert das angezeigte Level.' } },
+      ],
+      lobby: [
+        { name: '!hide [me] / !show', aliases: ['!unhide'], desc: {
+          en: 'Hides everyone except the bot — perfect for rare skin screenshots 😏 Bot must be party leader.',
+          fr: 'Cache tout le monde sauf le bot — parfait pour les screens de skins rares 😏 Le bot doit être chef.',
+          es: 'Oculta a todos excepto el bot — perfecto para capturas de skins raros 😏 El bot debe ser líder.',
+          de: 'Versteckt alle außer dem Bot — perfekt für Screenshots seltener Skins 😏 Bot muss Leader sein.' } },
+        { name: '!ready / !unready', aliases: ['!pret', '!paspret'], desc: {
+          en: 'Ready / Not ready.', fr: 'Prêt / Pas prêt.', es: 'Listo / No listo.', de: 'Bereit / Nicht bereit.' } },
+        { name: '!sitout / !sitin', aliases: [], desc: {
+          en: 'The bot sits out of the match / participates again.',
+          fr: 'Le bot ne participe plus à la partie / participe de nouveau.',
+          es: 'El bot deja de participar / participa de nuevo.',
+          de: 'Der Bot setzt aus / nimmt wieder teil.' } },
+        { name: '!invite [player]', aliases: [], desc: {
+          en: 'The bot invites you (or a friend) to its party.',
+          fr: 'Le bot t\'invite (ou un ami) dans son groupe.',
+          es: 'El bot te invita (o a un amigo) a su grupo.',
+          de: 'Der Bot lädt dich (oder einen Freund) ein.' } },
+        { name: '!partyinfo / !fc', aliases: ['!party', '!friendcount'], desc: {
+          en: 'Party members / bot friend count.',
+          fr: 'Membres du groupe / nombre d\'amis du bot.',
+          es: 'Miembros del grupo / número de amigos.',
+          de: 'Party-Mitglieder / Freundesanzahl.' } },
+        { name: '!kick / !promote / !privacy / !leave / !add', aliases: [], admin: true, desc: {
+          en: 'Kick, promote, party privacy, leave, friend request.',
+          fr: 'Exclure, promouvoir, confidentialité, quitter, demande d\'ami.',
+          es: 'Expulsar, promover, privacidad, salir, solicitud de amistad.',
+          de: 'Kicken, befördern, Privatsphäre, verlassen, Freundschaftsanfrage.' } },
+        { name: '!help / !ping', aliases: ['!aide'], desc: {
+          en: 'Command list in the Fortnite chat / response test.',
+          fr: 'Liste des commandes dans le chat Fortnite / test de réponse.',
+          es: 'Lista de comandos en el chat / prueba de respuesta.',
+          de: 'Befehlsliste im Chat / Antworttest.' } },
+      ],
+      discord: [
+        { name: '/login · /logout', aliases: [], desc: {
+          en: 'Link / unlink your Epic Games account (1-click).',
+          fr: 'Connecte / déconnecte ton compte Epic Games (1 clic).',
+          es: 'Vincula / desvincula tu cuenta Epic Games (1 clic).',
+          de: 'Verknüpft / trennt dein Epic Games Konto (1 Klick).' } },
+        { name: '/add [pseudo]', aliases: [], desc: {
+          en: 'A bot sends you a friend request (auto if logged in).',
+          fr: 'Un bot t\'envoie une demande d\'ami (auto si connecté).',
+          es: 'Un bot te envía una solicitud de amistad.',
+          de: 'Ein Bot sendet dir eine Freundschaftsanfrage.' } },
+        { name: '/skin <bot> <name>', aliases: [], desc: {
+          en: 'Makes one of your friended bots wear a skin.',
+          fr: 'Fait porter un skin à un de tes bots amis.',
+          es: 'Hace que uno de tus bots amigos use un skin.',
+          de: 'Lässt einen deiner Bot-Freunde einen Skin tragen.' } },
+        { name: '/invite [bot]', aliases: [], desc: {
+          en: 'A bot invites you to its Fortnite party.',
+          fr: 'Un bot t\'invite dans son groupe Fortnite.',
+          es: 'Un bot te invita a su grupo.',
+          de: 'Ein Bot lädt dich in seine Party ein.' } },
+        { name: '/listbots · /info · /status', aliases: [], desc: {
+          en: 'Available bots / global stats / Fortnite services status.',
+          fr: 'Bots disponibles / stats globales / état des services Fortnite.',
+          es: 'Bots disponibles / estadísticas / estado de los servicios.',
+          de: 'Verfügbare Bots / Statistiken / Dienststatus.' } },
+        { name: '/shop · /map · /news', aliases: [], desc: {
+          en: 'Item shop / current map / Fortnite news.',
+          fr: 'Boutique du jour / carte actuelle / actus Fortnite.',
+          es: 'Tienda / mapa actual / noticias.',
+          de: 'Shop / aktuelle Karte / News.' } },
+        { name: '/locker · /list', aliases: [], desc: {
+          en: 'Your Fortnite locker / your Epic friends list. Requires /login.',
+          fr: 'Ton casier Fortnite / ta liste d\'amis Epic. Nécessite /login.',
+          es: 'Tu taquilla / tu lista de amigos. Requiere /login.',
+          de: 'Dein Locker / deine Freundesliste. Benötigt /login.' } },
+        { name: '/sac [code]', aliases: [], desc: {
+          en: 'Sets your Support-A-Creator code (default: <b>aeroz</b> 💙).',
+          fr: 'Définit ton code créateur (défaut : <b>aeroz</b> 💙).',
+          es: 'Define tu código de creador (por defecto: <b>aeroz</b> 💙).',
+          de: 'Setzt deinen Creator-Code (Standard: <b>aeroz</b> 💙).' } },
+        { name: '/setlangage <lang>', aliases: [], desc: {
+          en: 'Reply language: EN (default), FR, ES, DE.',
+          fr: 'Langue des réponses : EN (défaut), FR, ES, DE.',
+          es: 'Idioma de las respuestas: EN (defecto), FR, ES, DE.',
+          de: 'Antwortsprache: EN (Standard), FR, ES, DE.' } },
+        { name: '/commands', aliases: [], desc: {
+          en: 'This list, inside Discord.',
+          fr: 'Cette liste, directement dans Discord.',
+          es: 'Esta lista, dentro de Discord.',
+          de: 'Diese Liste, direkt in Discord.' } },
+      ],
+      premium: [
+        { name: '/premium', aliases: [], premium: true, desc: {
+          en: 'Discover LobbyBot Premium, check your subscription, subscribe in 2 clicks.',
+          fr: 'Découvre LobbyBot Premium, consulte ton abonnement, abonne-toi en 2 clics.',
+          es: 'Descubre LobbyBot Premium y suscríbete en 2 clics.',
+          de: 'Entdecke LobbyBot Premium und abonniere in 2 Klicks.' } },
+        { name: '/squad', aliases: [], premium: true, desc: {
+          en: 'Your personal bots join your party — a full squad just for you, 24/7.',
+          fr: 'Tes bots perso rejoignent ton groupe — une squad complète rien que pour toi, 24/7.',
+          es: 'Tus bots personales se unen a tu grupo — un squad completo solo para ti.',
+          de: 'Deine persönlichen Bots joinen deiner Party — ein ganzes Squad nur für dich.' } },
+        { name: '/emote-all <name>', aliases: [], premium: true, desc: {
+          en: 'All your bots dance the same emote at once — perfect for TikTok/YouTube.',
+          fr: 'Tous tes bots dansent la même emote en même temps — parfait pour TikTok/YouTube.',
+          es: 'Todos tus bots bailan la misma emote a la vez — perfecto para TikTok/YouTube.',
+          de: 'Alle deine Bots tanzen dieselbe Emote gleichzeitig — perfekt für TikTok/YouTube.' } },
+        { name: '/preset save|apply|list', aliases: [], premium: true, desc: {
+          en: 'Save full loadouts and apply them to your whole fleet in one command.',
+          fr: 'Sauvegarde des loadouts complets et applique-les à toute ta flotte en une commande.',
+          es: 'Guarda loadouts completos y aplícalos a toda tu flota en un comando.',
+          de: 'Speichere komplette Loadouts und wende sie auf deine ganze Flotte an.' } },
+      ],
+    };
+
+    // ═══════════ RENDERING ═══════════
+    let currentLang = localStorage.getItem('dashboard_lang') || 'en';
+    function t(key) { return (i18n[currentLang] && i18n[currentLang][key]) || i18n['en'][key] || key; }
+
+    function setLang(lang) {
+      if (!i18n[lang]) return;
+      currentLang = lang;
+      localStorage.setItem('dashboard_lang', lang);
+      applyTranslations();
+      renderAll(document.getElementById('searchBox').value);
+    }
+
+    function applyTranslations() {
+      document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.getAttribute('data-i18n')));
+      document.querySelectorAll('[data-i18n-html]').forEach(el => el.innerHTML = t(el.getAttribute('data-i18n-html')));
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = t(el.getAttribute('data-i18n-placeholder')));
+      document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === currentLang));
+      document.documentElement.lang = currentLang;
+    }
+
+    function cardHTML(cmd) {
+      const badges =
+        (cmd.premium ? `<span class="badge">${t('premiumBadge')}</span>` : '') +
+        (cmd.admin ? `<span class="badge admin">${t('adminBadge')}</span>` : '');
+      const aliases = (cmd.aliases && cmd.aliases.length)
+        ? `<div class="cmd-aliases">${cmd.aliases.map(a => `<span class="alias-chip">${a}</span>`).join('')}</div>`
+        : '';
+      return `<div class="cmd-card${cmd.premium ? ' premium' : ''}">
+        <div class="cmd-name">${cmd.name}${badges}</div>
+        <div class="cmd-desc">${cmd.desc[currentLang] || cmd.desc.en}</div>
+        ${aliases}
+      </div>`;
+    }
+
+    function matches(cmd, filter) {
+      if (!filter) return true;
+      const f = filter.toLowerCase();
+      return cmd.name.toLowerCase().includes(f)
+        || (cmd.aliases || []).some(a => a.toLowerCase().includes(f))
+        || (cmd.desc[currentLang] || cmd.desc.en).toLowerCase().includes(f);
+    }
+
+    function renderAll(filter = '') {
+      for (const [key, list] of Object.entries(COMMANDS)) {
+        const grid = document.getElementById('grid-' + key);
+        const visible = list.filter(c => matches(c, filter));
+        grid.innerHTML = visible.map(cardHTML).join('') ||
+          '<div style="opacity:0.4;font-size:0.85rem;padding:8px 4px;">—</div>';
+      }
+    }
+
+    applyTranslations();
+    renderAll();
+  </script>
+</body>
+</html>
