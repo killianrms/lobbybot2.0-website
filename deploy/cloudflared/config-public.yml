@@ -1,0 +1,21 @@
+# Tunnel PUBLIC — sert le panel public (/) et le panel premium (/premium).
+# Créé avec : cloudflared tunnel create lobbybot-public
+# Remplace <TUNNEL_ID_PUBLIC> par l'UUID retourné par la commande ci-dessus.
+
+tunnel: <TUNNEL_ID_PUBLIC>
+credentials-file: /root/.cloudflared/<TUNNEL_ID_PUBLIC>.json
+
+ingress:
+  # /admin ne doit JAMAIS être atteignable via ce tunnel public, même si
+  # quelqu'un devine l'URL — 404 explicite avant même de toucher l'app.
+  # (Doublon volontaire avec le middleware ADMIN_HOSTNAME de server.js :
+  # défense en profondeur, l'un des deux suffirait déjà.)
+  - hostname: dashboard.killianrms.com
+    path: ^/admin(/.*)?$
+    service: http_status:404
+
+  - hostname: dashboard.killianrms.com
+    service: http://localhost:3000
+
+  # Catch-all obligatoire en fin de fichier pour cloudflared.
+  - service: http_status:404

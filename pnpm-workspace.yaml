@@ -1,0 +1,6 @@
+packages:
+  - "."
+  - "dashboard-ui"
+
+allowBuilds:
+  better-sqlite3: false

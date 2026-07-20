@@ -1,0 +1,16 @@
+# Tunnel ADMIN — séparé du tunnel public, protégé par Cloudflare Access.
+# Créé avec : cloudflared tunnel create lobbybot-admin
+# Remplace <TUNNEL_ID_ADMIN> par l'UUID retourné par la commande ci-dessus.
+#
+# Ce tunnel utilise un identifiant/des credentials complètement différents du
+# tunnel public : si jamais le tunnel public est un jour compromis, l'accès
+# admin n'est pas affecté (et inversement).
+
+tunnel: <TUNNEL_ID_ADMIN>
+credentials-file: /root/.cloudflared/<TUNNEL_ID_ADMIN>.json
+
+ingress:
+  - hostname: admin.dashboard.killianrms.com
+    service: http://localhost:3000
+
+  - service: http_status:404

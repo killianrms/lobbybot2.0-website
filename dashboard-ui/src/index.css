@@ -1,0 +1,267 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  ── LobbyBot design tokens ──────────────────────────────────────────────
+  Grounded in the subject: a live Fortnite lobby-bot service. The signal
+  cyan continues the original site's accent; legendary gold marks Premium,
+  echoing Fortnite's own rarity color language (the audience already reads
+  gold as "the good tier"). Near-black is the default surface — this is a
+  dark-native HUD-style product, light mode is a courtesy fallback.
+*/
+:root {
+  --text: #5b6472;
+  --text-h: #0b0e14;
+  --bg: #f7f8fa;
+  --card: #ffffff;
+  --border: #dfe3ea;
+  --code-bg: #eef1f5;
+  --accent: #0891a8;
+  --accent-bg: rgba(8, 145, 168, 0.08);
+  --accent-border: rgba(8, 145, 168, 0.45);
+  --premium: #b4790e;
+  --premium-bg: rgba(180, 121, 14, 0.1);
+  --shadow:
+    rgba(11, 14, 20, 0.08) 0 10px 15px -3px, rgba(11, 14, 20, 0.04) 0 4px 6px -2px;
+
+  --sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --heading: "Chakra Petch", "Inter", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Consolas, monospace;
+
+  font: 16px/1.5 var(--sans);
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --radius: 0.625rem;
+  --background: var(--bg);
+  --foreground: var(--text-h);
+  --card-foreground: var(--text-h);
+  --popover: var(--card);
+  --popover-foreground: var(--text-h);
+  --primary: var(--accent);
+  --primary-foreground: #ffffff;
+  --secondary: var(--code-bg);
+  --secondary-foreground: var(--text-h);
+  --muted: var(--code-bg);
+  --muted-foreground: var(--text);
+  --accent-ui: var(--accent-bg);
+  --accent-ui-foreground: var(--accent);
+  --destructive: #d63d52;
+  --destructive-foreground: #ffffff;
+  --border-ui: var(--border);
+  --input: var(--border);
+  --ring: var(--accent-border);
+}
+
+.dark {
+  --text: #93a0b4;
+  --text-h: #eef2f7;
+  --bg: #0a0d13;
+  --card: #10141d;
+  --border: #212736;
+  --code-bg: #161c28;
+  --accent: #22d3ee;
+  --accent-bg: rgba(34, 211, 238, 0.12);
+  --accent-border: rgba(34, 211, 238, 0.4);
+  --premium: #f5b942;
+  --premium-bg: rgba(245, 185, 66, 0.12);
+  --shadow:
+    rgba(0, 0, 0, 0.5) 0 10px 25px -5px, rgba(0, 0, 0, 0.3) 0 8px 10px -6px;
+
+  --background: var(--bg);
+  --foreground: var(--text-h);
+  --card-foreground: var(--text-h);
+  --popover: var(--code-bg);
+  --popover-foreground: var(--text-h);
+  --primary: var(--accent);
+  --primary-foreground: #0a0d13;
+  --secondary: var(--code-bg);
+  --secondary-foreground: var(--text-h);
+  --muted: var(--code-bg);
+  --muted-foreground: var(--text);
+  --accent-ui: var(--accent-bg);
+  --accent-ui-foreground: var(--accent);
+  --destructive: #f16273;
+  --destructive-foreground: #0a0d13;
+  --border-ui: var(--border);
+  --input: var(--border);
+  --ring: var(--accent-border);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --text: #93a0b4;
+    --text-h: #eef2f7;
+    --bg: #0a0d13;
+    --card: #10141d;
+    --border: #212736;
+    --code-bg: #161c28;
+    --accent: #22d3ee;
+    --accent-bg: rgba(34, 211, 238, 0.12);
+    --accent-border: rgba(34, 211, 238, 0.4);
+    --premium: #f5b942;
+    --premium-bg: rgba(245, 185, 66, 0.12);
+    --shadow:
+      rgba(0, 0, 0, 0.5) 0 10px 25px -5px, rgba(0, 0, 0, 0.3) 0 8px 10px -6px;
+
+    --background: var(--bg);
+    --foreground: var(--text-h);
+    --card-foreground: var(--text-h);
+    --popover: var(--code-bg);
+    --popover-foreground: var(--text-h);
+    --primary: var(--accent);
+    --primary-foreground: #0a0d13;
+    --secondary: var(--code-bg);
+    --secondary-foreground: var(--text-h);
+    --muted: var(--code-bg);
+    --muted-foreground: var(--text);
+    --accent-ui: var(--accent-bg);
+    --accent-ui-foreground: var(--accent);
+    --destructive: #f16273;
+    --destructive-foreground: #0a0d13;
+    --border-ui: var(--border);
+    --input: var(--border);
+    --ring: var(--accent-border);
+  }
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent-ui);
+  --color-accent-foreground: var(--accent-ui-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border-ui);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-premium: var(--premium);
+  --color-premium-bg: var(--premium-bg);
+  --font-sans: var(--sans);
+  --font-display: var(--heading);
+  --font-mono: var(--mono);
+}
+
+/*
+  Base element defaults live INSIDE @layer base so Tailwind utility classes
+  (text-3xl, mb-2, tracking-tight, etc.) always win in the cascade. Plain
+  unlayered rules here would outrank every utility class regardless of
+  source order — that was the cause of headings carrying stray 32px margins
+  that fought whatever spacing a component tried to set.
+*/
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--heading);
+    color: var(--text-h);
+  }
+
+  code {
+    font-family: var(--mono);
+    border-radius: 4px;
+    background: var(--code-bg);
+    color: var(--text-h);
+    padding: 0.15em 0.4em;
+    font-size: 0.9em;
+  }
+}
+
+/* ── Signature motion: the "live" pulse ──────────────────────────────────
+   One motif, reused deliberately everywhere something is live: the nav
+   brand mark, the hero status pill, each online bot row. Off/offline
+   states never pulse — the animation itself carries meaning. */
+@layer utilities {
+  .pulse-dot {
+    position: relative;
+    display: inline-flex;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: #34d399;
+  }
+  .pulse-dot::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: inherit;
+    animation: pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    75%,
+    100% {
+      transform: scale(2.6);
+      opacity: 0;
+    }
+  }
+
+  .fade-up {
+    animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .glow-surface {
+    position: relative;
+    isolation: isolate;
+  }
+  .glow-surface::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(60% 100% at 50% 0%, var(--accent-bg), transparent 70%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pulse-dot::before,
+    .fade-up {
+      animation: none !important;
+    }
+  }
+}
